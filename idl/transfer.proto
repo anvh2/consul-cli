@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package transfer;
+
+service TransferPointService {
+    rpc TransferPoint(TransferRequest) returns (TransferResponse);
+}
+
+message TransferRequest {
+
+} 
+
+message TransferResponse {
+    
+}

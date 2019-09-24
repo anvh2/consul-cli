@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package counter;
+
+service CounterPointService {
+    rpc IncreasePoint(IncreaseRequest) returns (IncreaseResponse);
+    rpc DecreasePoint(DecreaseRequest) returns (DecreaseResponse);
+}
+
+message IncreaseRequest {
+    int64 userID = 1;
+    int64 amount = 2;
+}
+
+message IncreaseResponse {
+    
+}
+
+message DecreaseRequest {
+    int64 userID = 1;
+    int64 amount = 2;
+}
+
+message DecreaseResponse {
+
+}
