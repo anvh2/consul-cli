@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/anvh2/consul-cli/services/counter"
 	"github.com/spf13/cobra"
 )
 
@@ -9,8 +10,12 @@ var counterCmd = &cobra.Command{
 	Short: "Starts Counter Point Service",
 	Long:  `Starts Counter Point Service`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// logger := log.NewStandardFactory("/data/logs/zpi-lixi", "group")
+		server := counter.NewServer()
 
-		return nil
+		return server.Run()
 	},
+}
+
+func init() {
+	RootCmd.AddCommand(counterCmd)
 }

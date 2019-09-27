@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/anvh2/consul-cli/services/transfer"
 	"github.com/spf13/cobra"
 )
 
@@ -9,8 +10,12 @@ var transferCmd = &cobra.Command{
 	Short: "Starts Transfer Point Service",
 	Long:  `Starts Transfer Point Service`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// logger := log.NewStandardFactory("/data/logs/zpi-lixi", "group")
+		server := transfer.NewServer()
 
-		return nil
+		return server.Run()
 	},
+}
+
+func init() {
+	RootCmd.AddCommand(transferCmd)
 }
