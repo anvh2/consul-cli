@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
 package counter;
 
 service CounterPointService {
@@ -8,12 +10,13 @@ service CounterPointService {
 }
 
 message IncreaseRequest {
-    int64 userID = 1;
-    int64 amount = 2;
+    PointData data = 1;
 }
 
 message IncreaseResponse {
-    
+    PointData data = 1;
+    int64 code = 2;
+    string message = 3;
 }
 
 message DecreaseRequest {
@@ -23,4 +26,10 @@ message DecreaseRequest {
 
 message DecreaseResponse {
 
+}
+
+message PointData {
+    int64 ID = 1 [(gogoproto.moretags) = "gorm:\"primay_key;AUTO_INCREMENT\""];
+    int64 userID = 2;
+    int64 amount = 3;
 }

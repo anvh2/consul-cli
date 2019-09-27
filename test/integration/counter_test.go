@@ -11,7 +11,7 @@ import (
 )
 
 func getConnDev() *grpc.ClientConn {
-	conn, err := grpc.Dial(":", grpc.WithInsecure())
+	conn, err := grpc.Dial(":55215", grpc.WithInsecure())
 	if err != nil {
 		fmt.Println("Can't connect to server", err)
 	}
@@ -19,9 +19,15 @@ func getConnDev() *grpc.ClientConn {
 	return conn
 }
 
-func TestConn(t *testing.T) {
-	client := pb.NewCounterPointServiceClient(getConnDev())
+var client = pb.NewCounterPointServiceClient(getConnDev())
 
-	_, err := client.IncreasePoint(context.Background(), &pb.IncreaseRequest{})
+func TestIncreasePoint(t *testing.T) {
+	_, err := client.IncreasePoint(context.Background(), &pb.IncreaseRequest{
+		Data: &pb.PointData{
+			UserID: 1,
+			Amount: 100,
+		},
+	})
+
 	assert.Nil(t, err)
 }

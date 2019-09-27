@@ -3,68 +3,47 @@ package user
 import (
 	"context"
 	"fmt"
-	"log"
-	"net"
-	"strconv"
 
+	pbCounter "github.com/anvh2/consul-cli/grpc-gen/counter"
 	pb "github.com/anvh2/consul-cli/grpc-gen/user"
-	"github.com/hashicorp/consul/api"
-	"github.com/olivere/randport"
+	"github.com/anvh2/consul-cli/plugins/consul"
+	rpc "github.com/anvh2/consul-cli/plugins/grpc"
 	"google.golang.org/grpc"
 )
 
 // Server ...
-type Server struct{}
+type Server struct {
+	counterClient pbCounter.CounterPointServiceClient
+}
 
 // NewServer ...
 func NewServer() *Server {
+
 	return &Server{}
 }
 
 // Run ...
 func (s *Server) Run() error {
-	addr := fmt.Sprintf("127.0.0.1:%d", randport.Get())
-	address, portstr, err := net.SplitHostPort(addr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	port, err := strconv.Atoi(portstr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Port in use: ", port)
+	server := rpc.NewGrpcServer(s.registerServer)
 
-	cli, err := api.NewClient(api.DefaultConfig())
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	reg := &api.AgentServiceRegistration{
-		ID:      "user1",
-		Name:    "User Service",
-		Tags:    []string{"Dev", "Test"},
-		Address: address,
+	port := 55216
+	config := consul.Config{
+		ID:      "user",
+		Name:    "UserService",
+		Tags:    []string{"DEV"},
+		Address: "127.0.0.1",
 		Port:    port,
 	}
-
-	err = cli.Agent().ServiceRegister(reg)
+	err := server.RegisterWithConsul(&config)
 	if err != nil {
-		fmt.Println(err)
-	}
-	defer cli.Agent().ServiceDeregister(reg.ID)
-
-	// create a listener on TCP port 7777
-	lis, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		fmt.Println("Can't register service")
 	}
 
-	// create a gRPC server object
-	grpcServer := grpc.NewServer()
-	// attach the Ping service to the server
-	pb.RegisterUserServiceServer(grpcServer, s)
+	return server.Run(port)
+}
 
-	return grpcServer.Serve(lis)
+func (s *Server) registerServer(server *grpc.Server) {
+	pb.RegisterUserServiceServer(server, s)
 }
 
 // Login ...

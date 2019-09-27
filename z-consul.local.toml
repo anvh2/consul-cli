@@ -1,0 +1,14 @@
+[user]
+port_instance1=55210
+port_instance2=55211
+port_instance3=55212
+
+[counter]
+port_instance1=55213
+port_instance2=55214
+port_instance3=55215
+
+[transfer]
+port_instance1=55216
+port_instance2=55217
+port_instance3=55218
