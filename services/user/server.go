@@ -4,31 +4,28 @@ import (
 	"context"
 	"fmt"
 
-	pbCounter "github.com/anvh2/consul-cli/grpc-gen/counter"
 	pb "github.com/anvh2/consul-cli/grpc-gen/user"
 	"github.com/anvh2/consul-cli/plugins/consul"
 	rpc "github.com/anvh2/consul-cli/plugins/grpc"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 )
 
 // Server ...
-type Server struct {
-	counterClient pbCounter.CounterPointServiceClient
-}
+type Server struct{}
 
 // NewServer ...
 func NewServer() *Server {
-
 	return &Server{}
 }
 
 // Run ...
-func (s *Server) Run() error {
+func (s *Server) Run(port int) error {
 	server := rpc.NewGrpcServer(s.registerServer)
 
-	port := 55216
+	id, _ := uuid.NewV4()
 	config := consul.Config{
-		ID:      "user",
+		ID:      fmt.Sprintf("user-%s", id.String()),
 		Name:    "UserService",
 		Tags:    []string{"DEV"},
 		Address: "127.0.0.1",

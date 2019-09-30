@@ -7,9 +7,12 @@ service TransferPointService {
 }
 
 message TransferRequest {
-
+    int64 toID = 1;
+    int64 fromID = 2;
+    int64 amount = 3;
 } 
 
 message TransferResponse {
-    
+    int64 code = 1;
+    string message = 2;
 }

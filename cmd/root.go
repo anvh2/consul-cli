@@ -10,6 +10,8 @@ import (
 
 var (
 	cfgFile string
+	// Port ...
+	Port int
 )
 
 // RootCmd ...
@@ -30,6 +32,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is local)")
+	RootCmd.PersistentFlags().IntVar(&Port, "port", 8000, "port of service(default is 8000)")
 }
 
 func initConfig() {

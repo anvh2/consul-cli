@@ -12,7 +12,7 @@ var transferCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		server := transfer.NewServer()
 
-		return server.Run()
+		return server.Run(Port)
 	},
 }
 

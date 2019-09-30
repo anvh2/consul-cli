@@ -4,27 +4,57 @@ import (
 	"context"
 	"fmt"
 
+	pbCounter "github.com/anvh2/consul-cli/grpc-gen/counter"
 	pb "github.com/anvh2/consul-cli/grpc-gen/transfer"
 	"github.com/anvh2/consul-cli/plugins/consul"
 	rpc "github.com/anvh2/consul-cli/plugins/grpc"
+	"github.com/hashicorp/consul/api"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 )
 
 // Server ...
-type Server struct{}
+type Server struct {
+	counterClient pbCounter.CounterPointServiceClient
+	consulAgent   *api.Agent
+}
 
 // NewServer ...
 func NewServer() *Server {
-	return &Server{}
+	address, err := consul.LookupServices("CounterService", "DEV")
+	if err != nil || address == nil {
+
+	}
+
+	conn, err := grpc.Dial(address[0], grpc.WithInsecure())
+	if err != nil {
+		fmt.Println(err)
+	}
+	counterClient := pbCounter.NewCounterPointServiceClient(conn)
+
+	// Check health counter service
+	go func() {
+		client, err := api.NewClient(api.DefaultConfig())
+		if err != nil {
+			return
+		}
+
+		str, _, _ := client.Agent().AgentHealthServiceByName("CounterService")
+		fmt.Println(str)
+	}()
+
+	return &Server{
+		counterClient: counterClient,
+	}
 }
 
 // Run ...
-func (s *Server) Run() error {
+func (s *Server) Run(port int) error {
 	server := rpc.NewGrpcServer(s.registerServer)
 
-	port := 55217
+	id, _ := uuid.NewV4()
 	config := consul.Config{
-		ID:      "transfer",
+		ID:      fmt.Sprintf("transfer-%s", id.String()),
 		Name:    "TransferService",
 		Tags:    []string{"DEV"},
 		Address: "127.0.0.1",
@@ -44,5 +74,32 @@ func (s *Server) registerServer(server *grpc.Server) {
 
 // TransferPoint ...
 func (s *Server) TransferPoint(ctx context.Context, req *pb.TransferRequest) (*pb.TransferResponse, error) {
-	return nil, nil
+	_, err := s.counterClient.IncreasePoint(ctx, &pbCounter.IncreaseRequest{
+		Data: &pbCounter.PointData{
+			UserID: req.ToID,
+			Amount: req.Amount,
+		},
+	})
+	if err != nil {
+		return &pb.TransferResponse{
+			Code:    -1,
+			Message: err.Error(),
+		}, err
+	}
+
+	_, err = s.counterClient.DecreasePoint(ctx, &pbCounter.DecreaseRequest{
+		UserID: req.FromID,
+		Amount: req.Amount,
+	})
+	if err != nil {
+		return &pb.TransferResponse{
+			Code:    -1,
+			Message: err.Error(),
+		}, err
+	}
+
+	return &pb.TransferResponse{
+		Code:    1,
+		Message: "OK",
+	}, nil
 }

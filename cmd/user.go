@@ -12,7 +12,7 @@ var userCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		server := user.NewServer()
 
-		return server.Run()
+		return server.Run(Port)
 	},
 }
 

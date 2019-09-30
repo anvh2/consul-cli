@@ -1,33 +1,45 @@
 package integration
 
-import (
-	"context"
-	"fmt"
-	"testing"
+// import (
+// 	"context"
+// 	"os"
+// 	"testing"
 
-	pb "github.com/anvh2/consul-cli/grpc-gen/counter"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
-)
+// 	pb "github.com/anvh2/consul-cli/grpc-gen/counter"
+// 	"github.com/anvh2/consul-cli/plugins/consul"
+// 	"github.com/stretchr/testify/assert"
+// 	"google.golang.org/grpc"
+// )
 
-func getConnDev() *grpc.ClientConn {
-	conn, err := grpc.Dial(":55215", grpc.WithInsecure())
-	if err != nil {
-		fmt.Println("Can't connect to server", err)
-	}
+// var client pb.CounterPointServiceClient
 
-	return conn
-}
+// func TestMain(m *testing.M) {
+// 	r, err := consul.NewResolver("counter", "DEV")
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-var client = pb.NewCounterPointServiceClient(getConnDev())
+// 	var opts []grpc.DialOption
+// 	opts = append(opts, grpc.WithInsecure())
+// 	opts = append(opts, grpc.WithBalancer(grpc.RoundRobin(r)))
 
-func TestIncreasePoint(t *testing.T) {
-	_, err := client.IncreasePoint(context.Background(), &pb.IncreaseRequest{
-		Data: &pb.PointData{
-			UserID: 1,
-			Amount: 100,
-		},
-	})
+// 	conn, err := grpc.Dial("", opts...)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	client = pb.NewCounterPointServiceClient(conn)
 
-	assert.Nil(t, err)
-}
+// 	os.Exit(m.Run())
+// }
+
+// func TestIncreasePoint(t *testing.T) {
+// 	res, err := client.IncreasePoint(context.Background(), &pb.IncreaseRequest{
+// 		Data: &pb.PointData{
+// 			UserID: 1,
+// 			Amount: 100,
+// 		},
+// 	})
+
+// 	assert.Nil(t, err)
+// 	assert.Equal(t, int64(1), res.Code)
+// }

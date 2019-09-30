@@ -36,6 +36,10 @@ func (s *BaseGrpcService) Run(port int) error {
 
 	grpcServer := grpc.NewServer()
 
+	s.grpcRegister(grpcServer)
+
+	fmt.Println("Server is running on port: ", s.port)
+
 	return grpcServer.Serve(s.listener)
 }
 

@@ -19,7 +19,8 @@ var counterCmd = &cobra.Command{
 
 		counterDb := mysql.NewCounterDb(db)
 		server := counter.NewServer(counterDb)
-		return server.Run()
+
+		return server.Run(Port)
 	},
 }
 

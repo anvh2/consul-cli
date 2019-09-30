@@ -8,6 +8,7 @@ import (
 	"github.com/anvh2/consul-cli/plugins/consul"
 	rpc "github.com/anvh2/consul-cli/plugins/grpc"
 	"github.com/anvh2/consul-cli/storages/mysql"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 )
 
@@ -24,12 +25,12 @@ func NewServer(counterDb *mysql.CounterDb) *Server {
 }
 
 // Run ...
-func (s *Server) Run() error {
+func (s *Server) Run(port int) error {
 	server := rpc.NewGrpcServer(s.registerServer)
 
-	port := 55215
+	id, _ := uuid.NewV4()
 	config := consul.Config{
-		ID:      "counter",
+		ID:      fmt.Sprintf("counter-%s", id.String()),
 		Name:    "CounterService",
 		Tags:    []string{"DEV"},
 		Address: "127.0.0.1",
@@ -49,11 +50,22 @@ func (s *Server) registerServer(server *grpc.Server) {
 
 // IncreasePoint ...
 func (s *Server) IncreasePoint(ctx context.Context, req *pb.IncreaseRequest) (*pb.IncreaseResponse, error) {
-	s.counterDb.IncreasePoint(req.Data)
-	return nil, nil
+	err := s.counterDb.IncreasePoint(req.Data)
+	if err != nil {
+		return &pb.IncreaseResponse{
+			Code:    -1,
+			Message: err.Error(),
+		}, nil
+	}
+
+	return &pb.IncreaseResponse{
+		Code:    1,
+		Message: "OK",
+		Data:    req.Data,
+	}, nil
 }
 
 // DecreasePoint ...
 func (s *Server) DecreasePoint(ctx context.Context, req *pb.DecreaseRequest) (*pb.DecreaseResponse, error) {
-	return nil, nil
+	return &pb.DecreaseResponse{}, nil
 }
