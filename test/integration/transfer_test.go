@@ -10,10 +10,10 @@ import (
 	"gitlab.360live.vn/zalopay/zpi-pkg/testutils"
 )
 
-var client = pb.NewTransferPointServiceClient(testutils.LocalConn(55211))
+var clientTransfer = pb.NewTransferPointServiceClient(testutils.LocalConn(55210))
 
 func TestTransferPoint(t *testing.T) {
-	res, err := client.TransferPoint(context.Background(), &pb.TransferRequest{
+	res, err := clientTransfer.TransferPoint(context.Background(), &pb.TransferRequest{
 		ToID:   1,
 		FromID: 0,
 		Amount: 100,
