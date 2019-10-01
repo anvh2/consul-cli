@@ -39,7 +39,7 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		viper.SetConfigFile("consul-demo")
+		viper.SetConfigFile("z-consul.local.toml")
 	}
 
 	viper.AddConfigPath(".")

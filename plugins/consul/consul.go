@@ -26,12 +26,13 @@ func Register(config *Config) error {
 		Tags:    config.Tags,
 		Address: config.Address,
 		Port:    config.Port,
-		Check:   &api.AgentServiceCheck{
+		Check: &api.AgentServiceCheck{
 			// Interval: "5s",
 			// Timeout:  "3s",
-			// TTL: "1s",
+			TTL: "1s",
 		},
 	}
+
 	err = cli.Agent().ServiceRegister(reg)
 	if err != nil {
 		return err

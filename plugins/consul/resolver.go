@@ -3,6 +3,7 @@ package consul
 import (
 	"fmt"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc/naming"
 
 	"github.com/hashicorp/consul/api"
@@ -16,9 +17,13 @@ type Resolver struct {
 
 	tag string
 
-	// passingOnly bool
+	passingOnly bool
 
-	// logger zap.Logger
+	done chan interface{}
+
+	update chan []*naming.Update
+
+	logger zap.Logger
 }
 
 // NewResolver ...
@@ -32,7 +37,21 @@ func NewResolver(service, tag string) (*Resolver, error) {
 		client:  client,
 		service: service,
 		tag:     tag,
+		done:    make(chan interface{}),
+		update:  make(chan []*naming.Update, 1),
 	}
+
+	instances, lastIndex, err := resolver.getInstances(0)
+	if err != nil {
+		// log
+	}
+
+	updates := resolver.updateInstances(instances, nil)
+	if len(updates) > 0 {
+		resolver.update <- updates
+	}
+
+	go resolver.worker(instances, lastIndex)
 
 	return resolver, nil
 }
@@ -44,12 +63,12 @@ func (r *Resolver) Resolve(target string) (naming.Watcher, error) {
 
 // Next ...
 func (r *Resolver) Next() ([]*naming.Update, error) {
-	return nil, nil
+	return <-r.update, nil
 }
 
 // Close ...
 func (r *Resolver) Close() {
-
+	close(r.done)
 }
 
 func (r *Resolver) getInstances(lastIndex uint64) ([]string, uint64, error) {
@@ -73,52 +92,45 @@ func (r *Resolver) getInstances(lastIndex uint64) ([]string, uint64, error) {
 	return instances, meta.LastIndex, nil
 }
 
-// LookupServiceHost resolves a service name to a list of network addresses.
-func (r *Resolver) LookupServiceHost(service, tag string) ([]string, uint64, error) {
-	services, meta, err := r.client.Health().Service(service, tag, true, &api.QueryOptions{})
-	if err != nil {
-		return nil, 0, err
-	}
+// worker is background process
+func (r *Resolver) worker(instances []string, lastIndex uint64) {
+	var err error
+	var newInstances []string
 
-	var instances []string
-	for _, service := range services {
-		addr := service.Service.Address
-		if len(addr) == 0 {
-			addr = service.Node.Address
+	for {
+		select {
+		case <-r.done:
+			return
+		default:
+			newInstances, lastIndex, err = r.getInstances(lastIndex)
+			if err != nil {
+				// log
+			}
+
+			updatedInstances := r.updateInstances(instances, newInstances)
+			if len(updatedInstances) > 0 {
+				r.update <- updatedInstances
+			}
+			instances = newInstances
 		}
-		address := fmt.Sprintf("%s:%d", addr, service.Service.Port)
-		instances = append(instances, address)
 	}
-
-	return instances, meta.LastIndex, nil
 }
 
-// LookupServices gets services
-func LookupServices(service, tag string) ([]string, error) {
-	client, err := api.NewClient(api.DefaultConfig())
-	if err != nil {
-		return nil, err
+// updateInstance mix 2 array and truncat duplicate elements
+func (r *Resolver) updateInstances(instances, newInstances []string) []*naming.Update {
+	instances = append(instances, newInstances...)
+	mapInstances := make(map[string]bool)
+
+	for _, instance := range instances {
+		mapInstances[instance] = true
 	}
 
-	services, _, err := client.Health().Service(service, tag, true, &api.QueryOptions{})
-	if err != nil {
-		return nil, err
+	var updates []*naming.Update
+	for addr := range mapInstances {
+		updates = append(updates, &naming.Update{
+			Op:   naming.Add,
+			Addr: addr,
+		})
 	}
-
-	var hosts []string
-	for _, service := range services {
-		addr := service.Service.Address
-		if len(addr) == 0 {
-			addr = service.Node.Address
-		}
-		address := fmt.Sprintf("%s:%d", addr, service.Service.Port)
-		hosts = append(hosts, address)
-	}
-
-	return hosts, nil
-}
-
-// BroadCastFailedService ...
-func BroadCastFailedService() {
-
+	return updates
 }

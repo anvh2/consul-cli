@@ -21,27 +21,21 @@ type Server struct {
 
 // NewServer ...
 func NewServer() *Server {
-	address, err := consul.LookupServices("CounterService", "DEV")
-	if err != nil || address == nil {
-
-	}
-
-	conn, err := grpc.Dial(address[0], grpc.WithInsecure())
+	r, err := consul.NewResolver("CounterService", "DEV")
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithInsecure())
+	opts = append(opts, grpc.WithBalancer(grpc.RoundRobin(r)))
+
+	conn, err := grpc.Dial("", opts...)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	counterClient := pbCounter.NewCounterPointServiceClient(conn)
-
-	// Check health counter service
-	go func() {
-		client, err := api.NewClient(api.DefaultConfig())
-		if err != nil {
-			return
-		}
-
-		str, _, _ := client.Agent().AgentHealthServiceByName("CounterService")
-		fmt.Println(str)
-	}()
 
 	return &Server{
 		counterClient: counterClient,
