@@ -41,6 +41,7 @@ func (s *Server) Run(port int) error {
 	if err != nil {
 		fmt.Println("Can't register service")
 	}
+	server.RegisterHealthCheck()
 
 	server.AddShutdownHook(func() {
 		server.DeRegisterFromConsul(idstr)

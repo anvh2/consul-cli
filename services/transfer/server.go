@@ -8,7 +8,6 @@ import (
 	pb "github.com/anvh2/consul-cli/grpc-gen/transfer"
 	"github.com/anvh2/consul-cli/plugins/consul"
 	rpc "github.com/anvh2/consul-cli/plugins/grpc"
-	"github.com/hashicorp/consul/api"
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 )
@@ -16,7 +15,6 @@ import (
 // Server ...
 type Server struct {
 	counterClient pbCounter.CounterPointServiceClient
-	consulAgent   *api.Agent
 }
 
 // NewServer ...
@@ -59,6 +57,7 @@ func (s *Server) Run(port int) error {
 	if err != nil {
 		fmt.Println("Can't register service")
 	}
+	server.RegisterHealthCheck()
 
 	server.AddShutdownHook(func() {
 		server.DeRegisterFromConsul(idstr)

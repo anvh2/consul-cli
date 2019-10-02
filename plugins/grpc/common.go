@@ -9,6 +9,7 @@ import (
 
 	"github.com/anvh2/consul-cli/plugins/consul"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 // ShutdownHook -
@@ -16,6 +17,7 @@ type ShutdownHook func()
 
 // BaseGrpcService ...
 type BaseGrpcService struct {
+	server       *grpc.Server
 	port         int
 	listener     net.Listener
 	grpcRegister GrpcRegister
@@ -42,11 +44,13 @@ func (s *BaseGrpcService) Run(port int) error {
 	}
 	s.listener = lis
 
-	grpcServer := grpc.NewServer()
+	if s.server == nil {
+		s.server = grpc.NewServer()
+	}
 
-	s.grpcRegister(grpcServer)
+	s.grpcRegister(s.server)
 	fmt.Println("Server is running on port: ", s.port)
-	go grpcServer.Serve(s.listener)
+	go s.server.Serve(s.listener)
 
 	sigs := make(chan os.Signal, 1)
 	s.done = make(chan error, 1)
@@ -92,4 +96,12 @@ func (s *BaseGrpcService) RegisterWithConsul(config *consul.Config) error {
 // DeRegisterFromConsul ...
 func (s *BaseGrpcService) DeRegisterFromConsul(id string) {
 	consul.DeRegister(id)
+}
+
+// RegisterHealthCheck -
+func (s *BaseGrpcService) RegisterHealthCheck() {
+	if s.server == nil {
+		s.server = grpc.NewServer()
+	}
+	grpc_health_v1.RegisterHealthServer(s.server, &consul.HealthImpl{})
 }

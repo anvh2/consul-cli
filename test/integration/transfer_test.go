@@ -2,7 +2,6 @@ package integration
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	pb "github.com/anvh2/consul-cli/grpc-gen/transfer"
@@ -10,15 +9,15 @@ import (
 	"gitlab.360live.vn/zalopay/zpi-pkg/testutils"
 )
 
-var clientTransfer = pb.NewTransferPointServiceClient(testutils.LocalConn(55210))
+var clientTransfer = pb.NewTransferPointServiceClient(testutils.LocalConn(55215))
 
 func TestTransferPoint(t *testing.T) {
 	res, err := clientTransfer.TransferPoint(context.Background(), &pb.TransferRequest{
 		ToID:   1,
-		FromID: 0,
+		FromID: 2,
 		Amount: 100,
 	})
 
 	assert.Nil(t, err)
-	fmt.Println(res)
+	assert.Equal(t, int64(1), res.Code)
 }

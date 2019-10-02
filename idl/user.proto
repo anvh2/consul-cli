@@ -5,6 +5,7 @@ package user;
 service UserService {
     rpc Login(LoginRequest) returns (LoginResponse);
     rpc Register(RegisterRequest) returns (RegisterResponse);
+    rpc Transfer(TransferRequest) returns (TransferResponse);
 }
 
 message LoginRequest {
@@ -21,4 +22,15 @@ message RegisterRequest {
 
 message RegisterResponse {
     
+}
+
+message TransferRequest {
+    int64 toID = 1;
+    int64 fromID = 2;
+    int64 Amount = 3;
+}
+
+message TransferResponse {
+    int64 Code = 1;
+    string Message = 2;
 }

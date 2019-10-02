@@ -11,7 +11,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-var client pb.CounterPointServiceClient
+var (
+	client pb.CounterPointServiceClient
+	conn   *grpc.ClientConn
+	err    error
+)
 
 func TestMain(m *testing.M) {
 	r, err := consul.NewResolver("CounterService", "DEV")
@@ -23,10 +27,11 @@ func TestMain(m *testing.M) {
 	opts = append(opts, grpc.WithInsecure())
 	opts = append(opts, grpc.WithBalancer(grpc.RoundRobin(r)))
 
-	conn, err := grpc.Dial("", opts...)
+	conn, err = grpc.Dial("", opts...)
 	if err != nil {
 		panic(err)
 	}
+
 	client = pb.NewCounterPointServiceClient(conn)
 
 	os.Exit(m.Run())

@@ -2,6 +2,7 @@ package consul
 
 import (
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc/naming"
@@ -11,19 +12,13 @@ import (
 
 // Resolver ...
 type Resolver struct {
-	client *api.Client
-
-	service string
-
-	tag string
-
+	client      *api.Client
+	service     string
+	tag         string
 	passingOnly bool
-
-	done chan interface{}
-
-	update chan []*naming.Update
-
-	logger zap.Logger
+	done        chan interface{}
+	updatec     chan []*naming.Update
+	logger      zap.Logger
 }
 
 // NewResolver ...
@@ -34,11 +29,12 @@ func NewResolver(service, tag string) (*Resolver, error) {
 	}
 
 	resolver := &Resolver{
-		client:  client,
-		service: service,
-		tag:     tag,
-		done:    make(chan interface{}),
-		update:  make(chan []*naming.Update, 1),
+		client:      client,
+		service:     service,
+		tag:         tag,
+		passingOnly: true,
+		done:        make(chan interface{}),
+		updatec:     make(chan []*naming.Update, 1),
 	}
 
 	instances, lastIndex, err := resolver.getInstances(0)
@@ -46,9 +42,9 @@ func NewResolver(service, tag string) (*Resolver, error) {
 		// log
 	}
 
-	updates := resolver.updateInstances(instances, nil)
+	updates := resolver.updateInstances(nil, instances)
 	if len(updates) > 0 {
-		resolver.update <- updates
+		resolver.updatec <- updates
 	}
 
 	go resolver.worker(instances, lastIndex)
@@ -68,16 +64,21 @@ func (r *Resolver) Resolve(target string) (naming.Watcher, error) {
 
 // Next ...
 func (r *Resolver) Next() ([]*naming.Update, error) {
-	return <-r.update, nil
+	return <-r.updatec, nil
 }
 
 // Close ...
 func (r *Resolver) Close() {
-	close(r.done)
+	select {
+	case <-r.done:
+	default:
+		close(r.done)
+		close(r.updatec)
+	}
 }
 
 func (r *Resolver) getInstances(lastIndex uint64) ([]string, uint64, error) {
-	services, meta, err := r.client.Health().Service(r.service, r.tag, true, &api.QueryOptions{
+	services, meta, err := r.client.Health().Service(r.service, r.tag, r.passingOnly, &api.QueryOptions{
 		WaitIndex: lastIndex,
 	})
 	if err != nil {
@@ -97,12 +98,13 @@ func (r *Resolver) getInstances(lastIndex uint64) ([]string, uint64, error) {
 	return instances, meta.LastIndex, nil
 }
 
-// worker is background process
+// worker is background process, it query to consul and detect config change
 func (r *Resolver) worker(instances []string, lastIndex uint64) {
 	var err error
 	var newInstances []string
 
 	for {
+		time.Sleep(5 * time.Second)
 		select {
 		case <-r.done:
 			return
@@ -110,11 +112,12 @@ func (r *Resolver) worker(instances []string, lastIndex uint64) {
 			newInstances, lastIndex, err = r.getInstances(lastIndex)
 			if err != nil {
 				// log
+				continue
 			}
 
 			updatedInstances := r.updateInstances(instances, newInstances)
 			if len(updatedInstances) > 0 {
-				r.update <- updatedInstances
+				r.updatec <- updatedInstances
 			}
 			instances = newInstances
 		}
@@ -122,20 +125,35 @@ func (r *Resolver) worker(instances []string, lastIndex uint64) {
 }
 
 // updateInstance mix 2 array and truncat duplicate elements
-func (r *Resolver) updateInstances(instances, newInstances []string) []*naming.Update {
-	instances = append(instances, newInstances...)
-	mapInstances := make(map[string]bool)
+func (r *Resolver) updateInstances(oldInstances, newInstances []string) []*naming.Update {
+	oldAddr := make(map[string]bool, len(oldInstances))
+	for _, instance := range oldInstances {
+		oldAddr[instance] = true
+	}
 
-	for _, instance := range instances {
-		mapInstances[instance] = true
+	newAddr := make(map[string]bool, len(newInstances))
+	for _, instance := range newInstances {
+		newAddr[instance] = true
 	}
 
 	var updates []*naming.Update
-	for addr := range mapInstances {
-		updates = append(updates, &naming.Update{
-			Op:   naming.Add,
-			Addr: addr,
-		})
+	for addr := range newAddr {
+		if _, ok := oldAddr[addr]; !ok {
+			updates = append(updates, &naming.Update{
+				Op:   naming.Add,
+				Addr: addr,
+			})
+		}
 	}
+
+	for addr := range oldAddr {
+		if _, ok := newAddr[addr]; !ok {
+			updates = append(updates, &naming.Update{
+				Op:   naming.Delete,
+				Addr: addr,
+			})
+		}
+	}
+
 	return updates
 }

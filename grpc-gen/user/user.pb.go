@@ -144,27 +144,135 @@ func (m *RegisterResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_RegisterResponse proto.InternalMessageInfo
 
+type TransferRequest struct {
+	ToID                 int64    `protobuf:"varint,1,opt,name=toID,proto3" json:"toID,omitempty"`
+	FromID               int64    `protobuf:"varint,2,opt,name=fromID,proto3" json:"fromID,omitempty"`
+	Amount               int64    `protobuf:"varint,3,opt,name=Amount,proto3" json:"Amount,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TransferRequest) Reset()         { *m = TransferRequest{} }
+func (m *TransferRequest) String() string { return proto.CompactTextString(m) }
+func (*TransferRequest) ProtoMessage()    {}
+func (*TransferRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_116e343673f7ffaf, []int{4}
+}
+func (m *TransferRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TransferRequest.Unmarshal(m, b)
+}
+func (m *TransferRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TransferRequest.Marshal(b, m, deterministic)
+}
+func (m *TransferRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TransferRequest.Merge(m, src)
+}
+func (m *TransferRequest) XXX_Size() int {
+	return xxx_messageInfo_TransferRequest.Size(m)
+}
+func (m *TransferRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_TransferRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TransferRequest proto.InternalMessageInfo
+
+func (m *TransferRequest) GetToID() int64 {
+	if m != nil {
+		return m.ToID
+	}
+	return 0
+}
+
+func (m *TransferRequest) GetFromID() int64 {
+	if m != nil {
+		return m.FromID
+	}
+	return 0
+}
+
+func (m *TransferRequest) GetAmount() int64 {
+	if m != nil {
+		return m.Amount
+	}
+	return 0
+}
+
+type TransferResponse struct {
+	Code                 int64    `protobuf:"varint,1,opt,name=Code,proto3" json:"Code,omitempty"`
+	Message              string   `protobuf:"bytes,2,opt,name=Message,proto3" json:"Message,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TransferResponse) Reset()         { *m = TransferResponse{} }
+func (m *TransferResponse) String() string { return proto.CompactTextString(m) }
+func (*TransferResponse) ProtoMessage()    {}
+func (*TransferResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_116e343673f7ffaf, []int{5}
+}
+func (m *TransferResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TransferResponse.Unmarshal(m, b)
+}
+func (m *TransferResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TransferResponse.Marshal(b, m, deterministic)
+}
+func (m *TransferResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TransferResponse.Merge(m, src)
+}
+func (m *TransferResponse) XXX_Size() int {
+	return xxx_messageInfo_TransferResponse.Size(m)
+}
+func (m *TransferResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_TransferResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TransferResponse proto.InternalMessageInfo
+
+func (m *TransferResponse) GetCode() int64 {
+	if m != nil {
+		return m.Code
+	}
+	return 0
+}
+
+func (m *TransferResponse) GetMessage() string {
+	if m != nil {
+		return m.Message
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*LoginRequest)(nil), "user.LoginRequest")
 	proto.RegisterType((*LoginResponse)(nil), "user.LoginResponse")
 	proto.RegisterType((*RegisterRequest)(nil), "user.RegisterRequest")
 	proto.RegisterType((*RegisterResponse)(nil), "user.RegisterResponse")
+	proto.RegisterType((*TransferRequest)(nil), "user.TransferRequest")
+	proto.RegisterType((*TransferResponse)(nil), "user.TransferResponse")
 }
 
 func init() { proto.RegisterFile("user.proto", fileDescriptor_116e343673f7ffaf) }
 
 var fileDescriptor_116e343673f7ffaf = []byte{
-	// 147 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2a, 0x2d, 0x4e, 0x2d,
-	0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x01, 0xb1, 0x95, 0xf8, 0xb8, 0x78, 0x7c, 0xf2,
-	0xd3, 0x33, 0xf3, 0x82, 0x52, 0x0b, 0x4b, 0x53, 0x8b, 0x4b, 0x94, 0xf8, 0xb9, 0x78, 0xa1, 0xfc,
-	0xe2, 0x82, 0xfc, 0xbc, 0xe2, 0x54, 0x25, 0x41, 0x2e, 0xfe, 0xa0, 0xd4, 0xf4, 0xcc, 0xe2, 0x92,
-	0xd4, 0x22, 0x98, 0x1a, 0x21, 0x2e, 0x01, 0x84, 0x10, 0x44, 0x99, 0x51, 0x15, 0x17, 0x77, 0x68,
-	0x71, 0x6a, 0x51, 0x70, 0x6a, 0x51, 0x59, 0x66, 0x72, 0xaa, 0x90, 0x01, 0x17, 0x2b, 0xd8, 0x18,
-	0x21, 0x21, 0x3d, 0xb0, 0x95, 0xc8, 0x76, 0x48, 0x09, 0xa3, 0x88, 0x41, 0x0c, 0x10, 0xb2, 0xe4,
-	0xe2, 0x80, 0x19, 0x2a, 0x24, 0x0a, 0x51, 0x80, 0x66, 0xaf, 0x94, 0x18, 0xba, 0x30, 0x44, 0x6b,
-	0x12, 0x1b, 0xd8, 0x43, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x74, 0x0f, 0x66, 0xe9, 0xde,
-	0x00, 0x00, 0x00,
+	// 245 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x51, 0xbb, 0x4e, 0xc3, 0x40,
+	0x10, 0x94, 0x49, 0x08, 0xb0, 0x3c, 0x1c, 0x16, 0x11, 0x59, 0xa9, 0x90, 0x2b, 0xaa, 0x08, 0x41,
+	0x45, 0x07, 0x22, 0x4d, 0x24, 0x68, 0x0e, 0xf2, 0x01, 0x01, 0x36, 0x96, 0x8b, 0xdc, 0x86, 0xdb,
+	0x33, 0x7f, 0xc6, 0xff, 0xa1, 0x7b, 0x61, 0x72, 0xdd, 0xce, 0x68, 0x76, 0xf6, 0x66, 0x0e, 0xa0,
+	0x13, 0x32, 0xb3, 0xad, 0x61, 0xcb, 0x38, 0x74, 0x73, 0x7d, 0x06, 0x27, 0xcf, 0xdc, 0xb4, 0x5a,
+	0xd1, 0x57, 0x47, 0x62, 0xeb, 0x12, 0x4e, 0x23, 0x96, 0x2d, 0x6b, 0xa1, 0xfa, 0x1c, 0x4a, 0x45,
+	0x4d, 0x2b, 0x96, 0x4c, 0xd2, 0x20, 0x8c, 0x7b, 0x2a, 0xca, 0x96, 0x50, 0xbe, 0x99, 0x95, 0x96,
+	0xf5, 0x9f, 0x0c, 0x11, 0x86, 0x96, 0x17, 0xf3, 0xaa, 0xb8, 0x2a, 0xae, 0x07, 0xca, 0xcf, 0x38,
+	0x81, 0xd1, 0xda, 0xf0, 0x66, 0x31, 0xaf, 0xf6, 0x3c, 0x1b, 0x91, 0xe3, 0x1f, 0x37, 0xdc, 0x69,
+	0x5b, 0x0d, 0x02, 0x1f, 0x50, 0xfd, 0x00, 0xe3, 0xde, 0x36, 0x9c, 0x72, 0xbe, 0x4f, 0xfc, 0x49,
+	0xc9, 0xd7, 0xcd, 0x58, 0xc1, 0xc1, 0x0b, 0x89, 0xac, 0x1a, 0xf2, 0xc6, 0x47, 0x2a, 0xc1, 0xdb,
+	0x9f, 0x02, 0x8e, 0x97, 0x42, 0xe6, 0x95, 0xcc, 0x77, 0xfb, 0x41, 0x78, 0x03, 0xfb, 0x3e, 0x20,
+	0xe2, 0xcc, 0x97, 0xf1, 0x3f, 0xfd, 0xf4, 0x62, 0x87, 0x8b, 0xf7, 0xee, 0xe1, 0x30, 0xc5, 0xc5,
+	0xcb, 0x20, 0xc8, 0x1a, 0x99, 0x4e, 0x72, 0xba, 0x5f, 0x4d, 0xcf, 0x4f, 0xab, 0x59, 0x4b, 0x69,
+	0x35, 0x4f, 0xf9, 0x3e, 0xf2, 0xbf, 0x74, 0xf7, 0x1b, 0x00, 0x00, 0xff, 0xff, 0xe9, 0x66, 0x78,
+	0xaa, 0xb3, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -181,6 +289,7 @@ const _ = grpc.SupportPackageIsVersion4
 type UserServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	Transfer(ctx context.Context, in *TransferRequest, opts ...grpc.CallOption) (*TransferResponse, error)
 }
 
 type userServiceClient struct {
@@ -209,10 +318,20 @@ func (c *userServiceClient) Register(ctx context.Context, in *RegisterRequest, o
 	return out, nil
 }
 
+func (c *userServiceClient) Transfer(ctx context.Context, in *TransferRequest, opts ...grpc.CallOption) (*TransferResponse, error) {
+	out := new(TransferResponse)
+	err := c.cc.Invoke(ctx, "/user.UserService/Transfer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 type UserServiceServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	Transfer(context.Context, *TransferRequest) (*TransferResponse, error)
 }
 
 // UnimplementedUserServiceServer can be embedded to have forward compatible implementations.
@@ -224,6 +343,9 @@ func (*UnimplementedUserServiceServer) Login(ctx context.Context, req *LoginRequ
 }
 func (*UnimplementedUserServiceServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+}
+func (*UnimplementedUserServiceServer) Transfer(ctx context.Context, req *TransferRequest) (*TransferResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Transfer not implemented")
 }
 
 func RegisterUserServiceServer(s *grpc.Server, srv UserServiceServer) {
@@ -266,6 +388,24 @@ func _UserService_Register_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_Transfer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).Transfer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/user.UserService/Transfer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).Transfer(ctx, req.(*TransferRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _UserService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "user.UserService",
 	HandlerType: (*UserServiceServer)(nil),
@@ -277,6 +417,10 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Register",
 			Handler:    _UserService_Register_Handler,
+		},
+		{
+			MethodName: "Transfer",
+			Handler:    _UserService_Transfer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

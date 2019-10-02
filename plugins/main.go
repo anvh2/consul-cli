@@ -71,9 +71,47 @@ func broadCastFailedService() {
 	fmt.Println(meta)
 }
 
-func main() {
-	registerService()
-	registerService()
+func getInstances() ([]string, error) {
+	client, err := api.NewClient(api.DefaultConfig())
+	if err != nil {
+		return nil, err
+	}
 
-	go helthCheck(service, []string{})
+	services, _, err := client.Health().Service("CounterService", "DEV", true, &api.QueryOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var instances []string
+	for _, service := range services {
+		addr := service.Service.Address
+		if len(addr) == 0 {
+			addr = service.Node.Address
+		}
+		address := fmt.Sprintf("%s:%d", addr, service.Service.Port)
+		instances = append(instances, address)
+	}
+
+	return instances, nil
+}
+
+func main() {
+	// registerService()
+	// registerService()
+
+	// go helthCheck(service, []string{})
+
+	// cli, _ := api.NewClient(api.DefaultConfig())
+
+	// cli.Agent().ServiceDeregister("user-f04411d5-13b4-4c68-9ad2-e6abfd459371")
+
+	for {
+		// time.Sleep(10 * time.Millisecond)
+		instances, err := getInstances()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(instances)
+	}
 }
