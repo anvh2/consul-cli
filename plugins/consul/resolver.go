@@ -56,6 +56,11 @@ func NewResolver(service, tag string) (*Resolver, error) {
 	return resolver, nil
 }
 
+// WithLogger -
+func (r *Resolver) WithLogger(logger zap.Logger) {
+	r.logger = logger
+}
+
 // Resolve ...
 func (r *Resolver) Resolve(target string) (naming.Watcher, error) {
 	return r, nil
