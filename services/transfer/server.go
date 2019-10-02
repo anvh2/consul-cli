@@ -47,8 +47,9 @@ func (s *Server) Run(port int) error {
 	server := rpc.NewGrpcServer(s.registerServer)
 
 	id, _ := uuid.NewV4()
+	idstr := fmt.Sprintf("transfer-%s", id.String())
 	config := consul.Config{
-		ID:      fmt.Sprintf("transfer-%s", id.String()),
+		ID:      idstr,
 		Name:    "TransferService",
 		Tags:    []string{"DEV"},
 		Address: "127.0.0.1",
@@ -58,6 +59,10 @@ func (s *Server) Run(port int) error {
 	if err != nil {
 		fmt.Println("Can't register service")
 	}
+
+	server.AddShutdownHook(func() {
+		server.DeRegisterFromConsul(idstr)
+	})
 
 	return server.Run(port)
 }

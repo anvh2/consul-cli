@@ -3,16 +3,24 @@ package rpc
 import (
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/anvh2/consul-cli/plugins/consul"
 	"google.golang.org/grpc"
 )
+
+// ShutdownHook -
+type ShutdownHook func()
 
 // BaseGrpcService ...
 type BaseGrpcService struct {
 	port         int
 	listener     net.Listener
 	grpcRegister GrpcRegister
+	hooks        []ShutdownHook
+	done         chan error
 }
 
 // GrpcRegister ...
@@ -37,10 +45,43 @@ func (s *BaseGrpcService) Run(port int) error {
 	grpcServer := grpc.NewServer()
 
 	s.grpcRegister(grpcServer)
-
 	fmt.Println("Server is running on port: ", s.port)
+	go grpcServer.Serve(s.listener)
 
-	return grpcServer.Serve(s.listener)
+	sigs := make(chan os.Signal, 1)
+	s.done = make(chan error, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		s.runHook()
+		s.done <- s.Shutdown()
+	}()
+	err = <-s.done
+	fmt.Println()
+	return err
+}
+
+func (s *BaseGrpcService) runHook() {
+	for _, hook := range s.hooks {
+		defer hook()
+	}
+}
+
+// Shutdown -
+func (s *BaseGrpcService) Shutdown() error {
+	if s.listener != nil {
+		if err := s.listener.Close(); err != nil {
+			return err
+		}
+		s.listener = nil
+	}
+	return nil
+}
+
+// AddShutdownHook -
+func (s *BaseGrpcService) AddShutdownHook(fn ShutdownHook) {
+	s.hooks = append(s.hooks, fn)
 }
 
 // RegisterWithConsul ...
