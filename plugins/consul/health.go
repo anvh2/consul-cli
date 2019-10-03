@@ -2,36 +2,8 @@ package consul
 
 import (
 	"context"
-	"sync"
 
-	"go.uber.org/zap"
 	"google.golang.org/grpc/health/grpc_health_v1"
-)
-
-// Health -
-type Health struct {
-	mu   sync.Mutex
-	endp []*Endpoint
-
-	logger zap.Logger
-}
-
-// Endpoint -
-type Endpoint struct {
-}
-
-// ServiceStatus -
-type ServiceStatus int64
-
-var (
-	// UNKNOWN -
-	UNKNOWN ServiceStatus
-	// SERVING -
-	SERVING ServiceStatus = 1
-	// NOTSERVING -
-	NOTSERVING ServiceStatus = 2
-	// SERVICEUNKNOWN -
-	SERVICEUNKNOWN ServiceStatus = 3
 )
 
 // HealthImpl -

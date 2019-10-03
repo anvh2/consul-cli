@@ -8,7 +8,9 @@ import (
 	"syscall"
 
 	"github.com/anvh2/consul-cli/plugins/consul"
+	"github.com/anvh2/consul-cli/services/balancer"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/grpclb/grpc_lb_v1"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
@@ -104,4 +106,10 @@ func (s *BaseGrpcService) RegisterHealthCheck() {
 		s.server = grpc.NewServer()
 	}
 	grpc_health_v1.RegisterHealthServer(s.server, &consul.HealthImpl{})
+}
+
+// RegisterLoadBalancerServer -
+func (s *BaseGrpcService) RegisterLoadBalancerServer() {
+	srv := balancer.NewLoadBalancerServer()
+	grpc_lb_v1.RegisterLoadBalancerServer(s.server, srv)
 }

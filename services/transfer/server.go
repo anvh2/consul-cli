@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc/balancer/grpclb/grpc_lb_v1"
+
 	pbCounter "github.com/anvh2/consul-cli/grpc-gen/counter"
 	pb "github.com/anvh2/consul-cli/grpc-gen/transfer"
 	"github.com/anvh2/consul-cli/plugins/consul"
@@ -15,28 +17,29 @@ import (
 // Server ...
 type Server struct {
 	counterClient pbCounter.CounterPointServiceClient
+	lbClient      grpc_lb_v1.LoadBalancer_BalanceLoadClient
 }
 
 // NewServer ...
 func NewServer() *Server {
-	r, err := consul.NewResolver("CounterService", "DEV")
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())
-	opts = append(opts, grpc.WithBalancer(grpc.RoundRobin(r)))
 
-	conn, err := grpc.Dial("", opts...)
+	// port of load balancer server
+	conn, err := grpc.Dial(":55210", opts...)
 	if err != nil {
+		// log
 		fmt.Println(err)
 	}
 
-	counterClient := pbCounter.NewCounterPointServiceClient(conn)
+	lbClient, err := grpc_lb_v1.NewLoadBalancerClient(conn).BalanceLoad(context.Background())
+	if err != nil {
+		// log
+		fmt.Println(err)
+	}
 
 	return &Server{
-		counterClient: counterClient,
+		lbClient: lbClient,
 	}
 }
 
@@ -72,32 +75,5 @@ func (s *Server) registerServer(server *grpc.Server) {
 
 // TransferPoint ...
 func (s *Server) TransferPoint(ctx context.Context, req *pb.TransferRequest) (*pb.TransferResponse, error) {
-	_, err := s.counterClient.IncreasePoint(ctx, &pbCounter.IncreaseRequest{
-		Data: &pbCounter.PointData{
-			UserID: req.ToID,
-			Amount: req.Amount,
-		},
-	})
-	if err != nil {
-		return &pb.TransferResponse{
-			Code:    -1,
-			Message: err.Error(),
-		}, err
-	}
-
-	_, err = s.counterClient.DecreasePoint(ctx, &pbCounter.DecreaseRequest{
-		UserID: req.FromID,
-		Amount: req.Amount,
-	})
-	if err != nil {
-		return &pb.TransferResponse{
-			Code:    -1,
-			Message: err.Error(),
-		}, err
-	}
-
-	return &pb.TransferResponse{
-		Code:    1,
-		Message: "OK",
-	}, nil
+	return nil, nil
 }

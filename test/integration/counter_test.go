@@ -7,6 +7,7 @@ import (
 
 	pb "github.com/anvh2/consul-cli/grpc-gen/counter"
 	"github.com/anvh2/consul-cli/plugins/consul"
+	balancer "github.com/anvh2/consul-cli/plugins/load-balancer"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )
@@ -26,6 +27,7 @@ func TestMain(m *testing.M) {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())
 	opts = append(opts, grpc.WithBalancer(grpc.RoundRobin(r)))
+	opts = append(opts, grpc.WithUnaryInterceptor(balancer.RetryToBackupService()))
 
 	conn, err = grpc.Dial("", opts...)
 	if err != nil {

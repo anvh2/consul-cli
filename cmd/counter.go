@@ -12,7 +12,7 @@ var counterCmd = &cobra.Command{
 	Short: "Starts Counter Point Service",
 	Long:  `Starts Counter Point Service`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db, err := gorm.Open("mysql", "root:Hoangan2110@/db_consul?charset=utf8&parseTime=True&loc=Local")
+		db, err := gorm.Open("mysql", "root:123@/db_consul?charset=utf8&parseTime=True&loc=Local")
 		if err != nil {
 			return err
 		}
