@@ -2,14 +2,19 @@ package integration
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	pb "github.com/anvh2/consul-cli/grpc-gen/counter"
-	"github.com/anvh2/consul-cli/plugins/consul"
-	balancer "github.com/anvh2/consul-cli/plugins/load-balancer"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/resolver"
+	"google.golang.org/grpc/resolver/manual"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -18,23 +23,35 @@ var (
 	err    error
 )
 
+type test struct {
+	servers   []*grpc.Server
+	addresses []string
+}
+
 func TestMain(m *testing.M) {
-	r, err := consul.NewResolver("CounterService", "DEV")
+	r, cleanup := manual.GenerateAndRegisterManualResolver()
+	defer cleanup()
+
+	conn, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithBalancerName(roundrobin.Name))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
-	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithInsecure())
-	opts = append(opts, grpc.WithBalancer(grpc.RoundRobin(r)))
-	opts = append(opts, grpc.WithUnaryInterceptor(balancer.RetryToBackupService()))
+	counterClient := pb.NewCounterPointServiceClient(conn)
 
-	conn, err = grpc.Dial("", opts...)
-	if err != nil {
-		panic(err)
+	// The first RPC should fail because there's no address.
+	ctx, cancle := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancle()
+	if _, err := counterClient.IncreasePoint(ctx, &pb.IncreaseRequest{}); err == nil || status.Code(err) != codes.DeadlineExceeded {
+		fmt.Printf("EmptyCall() = _, %v, want _, DeadlineExceeded\n", err)
 	}
 
-	client = pb.NewCounterPointServiceClient(conn)
+	var resolvedAddrs []resolver.Address
+	for i := 0; i < 3; i++ {
+		resolvedAddrs = append(resolvedAddrs, resolver.Address{Addr: test.addresses[i]})
+	}
+
+	r.UpdateState(resolver.State{Addresses: resolvedAddrs})
 
 	os.Exit(m.Run())
 }

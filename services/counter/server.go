@@ -2,13 +2,11 @@ package counter
 
 import (
 	"context"
-	"fmt"
+	"net"
 
 	pb "github.com/anvh2/consul-cli/grpc-gen/counter"
-	"github.com/anvh2/consul-cli/plugins/consul"
 	rpc "github.com/anvh2/consul-cli/plugins/grpc"
 	"github.com/anvh2/consul-cli/storages/mysql"
-	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 )
 
@@ -25,30 +23,17 @@ func NewServer(counterDb *mysql.CounterDb) *Server {
 }
 
 // Run ...
-func (s *Server) Run(port int) error {
-	server := rpc.NewGrpcServer(s.registerServer)
-
-	id, _ := uuid.NewV4()
-	idstr := fmt.Sprintf("counter-%s", id.String())
-	config := consul.Config{
-		ID:      idstr,
-		Name:    "CounterService",
-		Tags:    []string{"DEV"},
-		Address: "127.0.0.1",
-		Port:    port,
-	}
-	err := server.RegisterWithConsul(&config)
+func (s *Server) Run() error {
+	ports := []int{55210, 55211, 55212}
+	ips := []net.IP{[]byte(""), []byte(""), []byte("")}
+	server, err := rpc.NewServerWithExternalLoadBalancer(s.registerServer, 3, ports, ips)
 	if err != nil {
-		fmt.Println("Can't register service")
+		return err
 	}
-	server.RegisterHealthCheck()
-	server.RegisterLoadBalancerServer()
 
-	server.AddShutdownHook(func() {
-		server.DeRegisterFromConsul(idstr)
-	})
+	server.Run()
 
-	return server.Run(port)
+	return nil
 }
 
 func (s *Server) registerServer(server *grpc.Server) {
